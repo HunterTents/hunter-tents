@@ -1027,8 +1027,15 @@ function renderHelperChips(phase) {
 
   chipsEl.innerHTML = helperRoster.map(function(h) {
     const isSel = selected.includes(h.name);
-    return `<div class="helper-chip${isSel ? ' selected' : ''}" onclick="toggleHelper('${phase}','${h.name.replace(/'/g, '\\'')}')">${h.name}</div>`;
+    const chipClass = "helper-chip" + (isSel ? " selected" : "");
+    return '<div class="' + chipClass + '" data-phase="' + phase + '" data-name="' + h.name + '" onclick="toggleHelperChip(this)">' + h.name + '</div>';
   }).join('');
+}
+
+function toggleHelperChip(el) {
+  const phase = el.getAttribute('data-phase');
+  const name  = el.getAttribute('data-name');
+  toggleHelper(phase, name);
 }
 
 function toggleHelper(phase, name) {
