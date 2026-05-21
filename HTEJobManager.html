@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#041d2f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hunter Tents">
+<title>Hunter Tents & Events</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #041d2f;
+  --navy-mid:   #0a2d47;
+  --navy-light: #113a55;
+  --gold:       #FFCE73;
+  --gold-dim:   #e6b84e;
+  --gold-pale:  #fff5dc;
+  --white:      #ffffff;
+  --off-white:  #f4f6f8;
+  --gray-100:   #e8edf2;
+  --gray-200:   #cdd5de;
+  --gray-400:   #8a9ab0;
+  --gray-600:   #4a5a6b;
+  --success:    #22c55e;
+  --danger:     #ef4444;
+  --warning:    #f59e0b;
+  --radius:     10px;
+  --radius-lg:  16px;
+  --shadow:     0 2px 12px rgba(4,29,47,0.13);
+  --shadow-lg:  0 8px 32px rgba(4,29,47,0.20);
+  --font-head:  'Bebas Neue', sans-serif;
+  --font-body:  'DM Sans', sans-serif;
+  --font-mono:  'DM Mono', monospace;
+  --transition: 0.18s ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font-body); background: var(--off-white); color: var(--navy); min-height: 100vh; }
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+.app-header { background: var(--navy); padding: 0 16px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(4,29,47,0.35); }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-logo { height: 52px; width: auto; display: block; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.icon-btn { background: var(--navy-mid); border: 1px solid var(--navy-light); border-radius: var(--radius); color: var(--gold); padding: 7px 10px; cursor: pointer; font-size: 16px; transition: background var(--transition); line-height: 1; }
+.icon-btn:hover { background: var(--navy-light); }
+
+/* MAIN */
+.main { flex: 1; padding: 20px 16px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+/* UPLOAD */
+.upload-zone { border: 2px dashed var(--gray-200); border-radius: var(--radius-lg); padding: 28px 20px; text-align: center; cursor: pointer; transition: all var(--transition); background: var(--white); margin-bottom: 24px; position: relative; }
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: var(--gold-pale); }
+.upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-label { font-size: 14px; font-weight: 600; color: var(--navy); }
+.upload-hint { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+
+/* PROGRESS */
+.progress-wrap { margin-bottom: 20px; display: none; }
+.progress-label { font-size: 12px; color: var(--gray-600); margin-bottom: 6px; font-weight: 500; }
+.progress-bar-bg { background: var(--gray-100); border-radius: 99px; height: 8px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--navy), var(--gold)); border-radius: 99px; transition: width 0.3s ease; width: 0%; }
+
+/* SECTIONS */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; margin-top: 8px; }
+.section-title { font-family: var(--font-head); font-size: 20px; letter-spacing: 1px; color: var(--navy); }
+.job-count { background: var(--navy); color: var(--gold); border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; font-family: var(--font-mono); }
+.section-title.active-title { color: var(--warning); }
+.job-count.active-count { background: var(--warning); color: var(--navy); }
+
+/* JOB CARDS */
+.jobs-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.job-card { background: var(--white); border-radius: var(--radius-lg); border: 1.5px solid var(--gray-100); overflow: hidden; box-shadow: var(--shadow); transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition); }
+.job-card.active-card { border-color: var(--warning); box-shadow: 0 2px 12px rgba(245,158,11,0.2); }
+.job-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.job-card-inner { padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
+.job-accent { width: 4px; border-radius: 2px; align-self: stretch; min-height: 48px; background: var(--gold); flex-shrink: 0; }
+.job-accent.active { background: var(--warning); }
+.job-accent.completed { background: var(--success); }
+.job-main { flex: 1; min-width: 0; }
+.job-client { font-weight: 700; font-size: 15px; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.job-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 3px; }
+.job-order { font-family: var(--font-mono); font-size: 11px; color: var(--gray-400); }
+.job-date { font-size: 12px; color: var(--gray-600); font-weight: 500; }
+.job-items { font-size: 11px; color: var(--gray-400); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.badge-upcoming { background: var(--gold-pale); color: var(--gold-dim); }
+.badge-active { background: #fef3c7; color: #92400e; }
+.badge-completed { background: #dcfce7; color: #16a34a; }
+.tag-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.tag { background: var(--off-white); border: 1px solid var(--gray-100); border-radius: 4px; font-size: 10px; padding: 1px 6px; color: var(--gray-600); font-weight: 500; }
+.tag.tent { background: #e0f2fe; border-color: #bae6fd; color: #0369a1; }
+.tag.tables { background: #fef9c3; border-color: #fde68a; color: #92400e; }
+.tag.chairs { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.tag.extras { background: #fdf4ff; border-color: #e9d5ff; color: #7e22ce; }
+.tag.service { background: #fff1f2; border-color: #fecdd3; color: #be123c; }
+.card-delete-btn { background: none; border: 1.5px solid var(--gray-200); border-radius: 8px; color: var(--danger); padding: 4px 8px; font-size: 14px; cursor: pointer; transition: all var(--transition); line-height: 1; }
+.card-delete-btn:hover { background: var(--danger); color: white; border-color: var(--danger); }
+.empty-state { text-align: center; padding: 36px 20px; color: var(--gray-400); background: var(--white); border-radius: var(--radius-lg); border: 1.5px dashed var(--gray-200); }
+.empty-icon { font-size: 36px; margin-bottom: 8px; }
+.empty-text { font-size: 14px; font-weight: 500; }
+
+/* TIME CARD */
+.time-card { background: var(--navy); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.time-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 12px; }
+.time-row { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.time-label { font-size: 12px; color: var(--gray-400); width: 70px; flex-shrink: 0; }
+.time-display { font-family: var(--font-mono); font-size: 16px; color: var(--white); font-weight: 600; min-width: 80px; }
+.time-btn { padding: 8px 14px; border-radius: var(--radius); border: none; font-size: 12px; font-weight: 700; cursor: pointer; transition: all var(--transition); }
+.time-btn-in  { background: var(--success); color: white; }
+.time-btn-out { background: var(--danger);  color: white; }
+.time-btn-in:disabled, .time-btn-out:disabled { opacity: 0.4; cursor: not-allowed; }
+.time-edit { background: transparent; border: 1px solid var(--navy-light); color: var(--white); border-radius: 6px; padding: 4px 8px; font-family: var(--font-mono); font-size: 14px; width: 95px; }
+.time-duration { font-size: 13px; color: var(--gold); font-weight: 600; margin-top: 4px; }
+
+/* HELPER SELECTION */
+.helper-section { background: var(--off-white); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.helper-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--navy-light); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+.helper-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.helper-chip { padding: 7px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: var(--white); color: var(--navy); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); user-select: none; }
+.helper-chip.selected { background: var(--navy); color: var(--gold); border-color: var(--navy); }
+.helper-none { font-size: 12px; color: var(--gray-400); font-style: italic; padding: 4px 0; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(4,29,47,0.6); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 700px; max-height: 92vh; overflow: hidden; display: flex; flex-direction: column; animation: slideUp 0.25s ease; }
+@keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { background: var(--navy); padding: 14px 16px 12px; display: flex; align-items: flex-start; gap: 12px; flex-shrink: 0; }
+.modal-titles { flex: 1; }
+.modal-client { font-family: var(--font-head); font-size: 22px; color: var(--white); letter-spacing: 0.5px; line-height: 1.1; }
+.modal-order { font-family: var(--font-mono); font-size: 11px; color: var(--gold); margin-top: 2px; }
+.modal-addr { font-size: 11px; color: var(--gold); opacity: 0.7; margin-top: 2px; }
+.modal-close { background: var(--navy-light); border: none; color: var(--white); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 18px; line-height: 1; flex-shrink: 0; }
+
+/* TABS */
+.tab-bar { display: flex; background: var(--navy-mid); flex-shrink: 0; }
+.tab-btn { flex: 1; padding: 11px 8px; background: none; border: none; color: var(--gray-400); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 3px solid transparent; transition: all var(--transition); }
+.tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); background: rgba(255,206,115,0.06); }
+.tab-btn.locked { color: var(--gray-600); cursor: not-allowed; opacity: 0.5; }
+.tab-content { padding: 16px; display: none; }
+.tab-content.active { display: block; }
+
+/* PICKUP LOCK BANNER */
+.lock-banner { background: var(--navy-mid); border: 1.5px solid var(--navy-light); border-radius: var(--radius); padding: 16px; text-align: center; color: var(--gray-400); font-size: 13px; margin: 16px; }
+.lock-banner-icon { font-size: 28px; margin-bottom: 8px; }
+.lock-banner-text { font-weight: 600; color: var(--white); margin-bottom: 4px; }
+
+/* SERVICE NOTICE */
+.service-notice { background: linear-gradient(135deg, #041d2f, #0a2d47); border: 1.5px solid var(--gold-dim); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.service-notice-icon { font-size: 20px; flex-shrink: 0; }
+.service-notice-text { font-size: 12px; color: var(--gold); font-weight: 600; line-height: 1.4; }
+.service-notice-sub { font-size: 11px; color: rgba(255,206,115,0.65); font-weight: 400; }
+
+/* CHECKLIST */
+.checklist-section { background: var(--off-white); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.checklist-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--navy-light); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--gray-200); }
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--gray-100); cursor: pointer; user-select: none; -webkit-user-select: none; }
+.check-item:last-child { border-bottom: none; }
+.check-box { width: 22px; height: 22px; border: 2px solid var(--gray-200); border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all var(--transition); background: var(--white); margin-top: 1px; }
+.check-item.checked .check-box { background: var(--success); border-color: var(--success); color: white; }
+.check-item.checked .check-box::after { content: "✓"; font-size: 13px; font-weight: 700; }
+.check-item.checked .check-label { text-decoration: line-through; color: var(--gray-400); }
+.check-label { font-size: 13px; color: var(--navy); line-height: 1.4; }
+.check-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+
+/* PHOTO CAPTURE */
+.photo-item { background: var(--off-white); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 2px dashed var(--gray-200); }
+.photo-item.captured { border-color: var(--success); border-style: solid; background: #f0fdf4; }
+.photo-item-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--navy-light); margin-bottom: 10px; }
+.photo-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.photo-btn { flex: 1; min-width: 120px; padding: 10px 14px; border-radius: var(--radius); font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; border: 1.5px solid var(--gray-200); background: var(--white); color: var(--navy); transition: all var(--transition); text-align: center; }
+.photo-btn:hover { border-color: var(--gold); }
+.photo-btn.captured { background: var(--success); color: white; border-color: var(--success); }
+.photo-preview { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; }
+.photo-preview.show { display: block; }
+.photo-status { font-size: 12px; color: var(--success); font-weight: 600; margin-top: 8px; display: none; }
+.photo-status.show { display: block; }
+
+/* TIER SELECT */
+.tier-select { width: 100%; padding: 10px 12px; border: 1.5px solid var(--gray-200); border-radius: var(--radius); font-family: var(--font-body); font-size: 13px; color: var(--navy); background: var(--white); margin-top: 8px; cursor: pointer; }
+.tier-select:focus { outline: none; border-color: var(--gold); }
+
+/* ACTIONS */
+.modal-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--gray-100); flex-shrink: 0; background: var(--white); }
+.btn { padding: 10px 16px; border-radius: var(--radius); font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: all var(--transition); display: flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--navy); color: var(--gold); flex: 1; justify-content: center; }
+.btn-success { background: var(--success); color: white; flex: 1; justify-content: center; }
+.btn-success:hover { background: #16a34a; }
+.btn-danger { background: var(--danger); color: white; padding: 10px 14px; }
+.btn-danger:hover { background: #dc2626; }
+.btn-ghost { background: var(--off-white); color: var(--navy); border: 1.5px solid var(--gray-200); }
+
+/* QUICK TEXTS */
+.texts-modal { background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 700px; max-height: 82vh; overflow-y: auto; padding: 22px 18px; animation: slideUp 0.22s ease; }
+.texts-header { font-family: var(--font-head); font-size: 22px; color: var(--navy); margin-bottom: 16px; }
+.text-card { background: var(--off-white); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1.5px solid var(--gray-100); }
+.text-card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--navy-light); margin-bottom: 8px; }
+.text-body { font-size: 13px; color: var(--navy); line-height: 1.55; background: var(--white); border-radius: 8px; padding: 10px 12px; border: 1px solid var(--gray-100); white-space: pre-wrap; }
+.copy-btn { margin-top: 8px; background: var(--navy); color: var(--gold); border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background var(--transition); width: 100%; }
+.copy-btn:hover { background: var(--navy-light); }
+.copy-btn.copied { background: var(--success); color: white; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--navy); color: var(--gold); padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 600; z-index: 500; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; white-space: nowrap; box-shadow: var(--shadow-lg); border: 1px solid var(--gold-dim); }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* CONFIRM */
+.confirm-box { position: fixed; inset: 0; background: rgba(4,29,47,0.65); z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
+.confirm-box.open { display: flex; }
+.confirm-inner { background: var(--white); border-radius: var(--radius-lg); padding: 28px 24px; max-width: 360px; width: 100%; text-align: center; box-shadow: var(--shadow-lg); }
+.confirm-icon { font-size: 36px; margin-bottom: 10px; }
+.confirm-msg { font-size: 15px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.confirm-sub { font-size: 13px; color: var(--gray-600); margin-bottom: 22px; }
+.confirm-btns { display: flex; gap: 10px; justify-content: center; }
+
+@media (min-width: 600px) {
+  .modal { border-radius: var(--radius-lg); margin: 24px; }
+  .texts-modal { border-radius: var(--radius-lg); margin: 24px; }
+  .modal-overlay.open { align-items: center; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="app-header">
+    <div class="header-left">
+      <img class="header-logo" src="data:image/png;base64,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" alt="Hunter Tents & Events">
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="openTextsPanel()" title="Quick Texts">💬</button>
+      <button class="icon-btn" onclick="loadJobs()" title="Refresh">↻</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="pdfInput" accept=".pdf" multiple onchange="handleFileSelect(event)">
+      <div class="upload-icon">📄</div>
+      <div class="upload-label">Upload Rentopian Order PDF(s)</div>
+      <div class="upload-hint">Tap to select · Multiple files supported</div>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-label" id="progressLabel">Processing...</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+
+    <!-- ACTIVE -->
+    <div class="section-header">
+      <div class="section-title active-title">Active</div>
+      <span class="job-count active-count" id="activeCount">0</span>
+    </div>
+    <div class="jobs-grid" id="activeGrid">
+      <div class="empty-state"><div class="empty-icon">🔥</div><div class="empty-text">No active jobs</div></div>
+    </div>
+
+    <!-- UPCOMING -->
+    <div class="section-header">
+      <div class="section-title">Upcoming</div>
+      <span class="job-count" id="upcomingCount">0</span>
+    </div>
+    <div class="jobs-grid" id="upcomingGrid">
+      <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No upcoming jobs</div></div>
+    </div>
+
+    <!-- COMPLETED -->
+    <div class="section-header">
+      <div class="section-title">Completed</div>
+      <span class="job-count" id="completedCount">0</span>
+    </div>
+    <div class="jobs-grid" id="completedGrid">
+      <div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">No completed jobs</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- JOB MODAL -->
+<div class="modal-overlay" id="jobModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-titles">
+        <div class="modal-client" id="modalClient"></div>
+        <div class="modal-order" id="modalOrder"></div>
+        <div class="modal-addr" id="modalAddr"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabBtnDelivery" onclick="switchTab('delivery', this)">🚚 Delivery</button>
+      <button class="tab-btn locked" id="tabBtnPickup" onclick="tryPickupTab(this)">📦 Pickup</button>
+    </div>
+    <div class="modal-body" style="flex:1;overflow-y:auto;">
+
+      <!-- DELIVERY TAB -->
+      <div class="tab-content active" id="tab-delivery">
+        <div id="deliveryServiceNotice"></div>
+
+        <div class="checklist-section">
+          <div class="checklist-section-title">📦 Items — Load Out</div>
+          <div id="deliveryItemList"></div>
+        </div>
+
+        <div class="checklist-section" id="tentInspectionSection">
+          <div class="checklist-section-title">⛺ Tent Inspection</div>
+          <div id="tentInspection"></div>
+        </div>
+
+        <div class="checklist-section" id="tablesChairsSection">
+          <div class="checklist-section-title">🪑 Tables & Chairs</div>
+          <select class="tier-select" id="setupTier" onchange="saveTier(this.value)">
+            <option value="">— Select setup type —</option>
+            <option value="bundle">Bundle Package — Tables unfolded, chairs placed at each</option>
+            <option value="nobundle">No Bundle — Tables unfolded, chairs stacked on top</option>
+            <option value="dropoff">Drop-Off Only — Client handles setup and breakdown</option>
+            <option value="paid">Paid Setup/Breakdown — Full custom layout, client approves</option>
+          </select>
+        </div>
+
+        <div class="checklist-section" id="extrasDeliverySection" style="display:none">
+          <div class="checklist-section-title">✨ Extras</div>
+          <div id="extrasDeliveryList"></div>
+        </div>
+
+        <!-- TIME CARD — DELIVERY -->
+        <div class="time-card" id="deliveryTimeCard">
+          <div class="time-card-title">⏱ Delivery Time Card</div>
+          <div class="time-row">
+            <span class="time-label">Check In</span>
+            <span class="time-display" id="delCheckInDisplay">--:--</span>
+            <button class="time-btn time-btn-in" id="delCheckInBtn" onclick="timeCardAction('delivery','in')">Check In</button>
+            <input type="time" class="time-edit" id="delCheckInEdit" style="display:none" onchange="timeEditChanged('delivery','in',this.value)">
+            <button class="time-btn btn-ghost" id="delCheckInEditBtn" onclick="toggleTimeEdit('delivery','in')" style="font-size:11px;padding:6px 10px;display:none">✏️</button>
+          </div>
+          <div class="time-row">
+            <span class="time-label">Check Out</span>
+            <span class="time-display" id="delCheckOutDisplay">--:--</span>
+            <button class="time-btn time-btn-out" id="delCheckOutBtn" onclick="timeCardAction('delivery','out')" disabled>Check Out</button>
+            <input type="time" class="time-edit" id="delCheckOutEdit" style="display:none" onchange="timeEditChanged('delivery','out',this.value)">
+            <button class="time-btn btn-ghost" id="delCheckOutEditBtn" onclick="toggleTimeEdit('delivery','out')" style="font-size:11px;padding:6px 10px;display:none">✏️</button>
+          </div>
+          <div class="time-duration" id="delDuration"></div>
+        </div>
+
+        <!-- HELPER SELECTION — DELIVERY -->
+        <div class="helper-section" id="deliveryHelperSection">
+          <div class="helper-title">👥 Who Helped? — Delivery</div>
+          <div class="helper-chips" id="deliveryHelperChips">
+            <span class="helper-none">Loading helpers...</span>
+          </div>
+        </div>
+
+        <!-- PHOTO CAPTURE — DELIVERY -->
+        <div class="photo-item" id="deliveryPhotoSection">
+          <div class="photo-item-title">📸 Site Photo — Required Before Leaving</div>
+          <div class="photo-btns">
+            <label class="photo-btn" id="deliveryCameraLabel">
+              📷 Take Photo
+              <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'delivery')">
+            </label>
+            <label class="photo-btn" id="deliveryGalleryLabel">
+              🖼 Upload Photo
+              <input type="file" accept="image/*" style="display:none" onchange="handlePhoto(this,'delivery')">
+            </label>
+          </div>
+          <img id="deliveryPhotoPreview" class="photo-preview" alt="Delivery photo">
+          <div id="deliveryPhotoStatus" class="photo-status">✅ Photo saved to Drive</div>
+        </div>
+
+        <div class="checklist-section" id="clientWalkthroughSection">
+          <div class="checklist-section-title" id="walkthroughTitle">🗣 Client Walkthrough</div>
+          <div id="clientWalkthrough"></div>
+        </div>
+
+        <!-- BUSINESS CARDS -->
+        <div class="checklist-section">
+          <div class="checklist-section-title">💼 Before You Leave</div>
+          <div id="businessCardsList"></div>
+        </div>
+      </div>
+
+      <!-- PICKUP TAB -->
+      <div class="tab-content" id="tab-pickup">
+        <div id="pickupLockBanner"></div>
+        <div id="pickupContent" style="display:none">
+          <div id="pickupServiceNotice"></div>
+
+          <div class="checklist-section">
+            <div class="checklist-section-title">📦 Items — Load Back</div>
+            <div id="pickupItemList"></div>
+          </div>
+
+          <div class="checklist-section" id="tentPickupSection">
+            <div class="checklist-section-title">⛺ Tent Breakdown</div>
+            <div id="tentPickupList"></div>
+          </div>
+
+          <div class="checklist-section" id="tablesPickupSection">
+            <div class="checklist-section-title">🪑 Tables & Chairs</div>
+            <div id="tablesPickupList"></div>
+          </div>
+
+          <div class="checklist-section" id="extrasPickupSection" style="display:none">
+            <div class="checklist-section-title">✨ Extras</div>
+            <div id="extrasPickupList"></div>
+          </div>
+
+          <!-- TIME CARD — PICKUP -->
+          <div class="time-card" id="pickupTimeCard">
+            <div class="time-card-title">⏱ Pickup Time Card</div>
+            <div class="time-row">
+              <span class="time-label">Check In</span>
+              <span class="time-display" id="puCheckInDisplay">--:--</span>
+              <button class="time-btn time-btn-in" id="puCheckInBtn" onclick="timeCardAction('pickup','in')">Check In</button>
+              <input type="time" class="time-edit" id="puCheckInEdit" style="display:none" onchange="timeEditChanged('pickup','in',this.value)">
+              <button class="time-btn btn-ghost" id="puCheckInEditBtn" onclick="toggleTimeEdit('pickup','in')" style="font-size:11px;padding:6px 10px;display:none">✏️</button>
+            </div>
+            <div class="time-row">
+              <span class="time-label">Check Out</span>
+              <span class="time-display" id="puCheckOutDisplay">--:--</span>
+              <button class="time-btn time-btn-out" id="puCheckOutBtn" onclick="timeCardAction('pickup','out')" disabled>Check Out</button>
+              <input type="time" class="time-edit" id="puCheckOutEdit" style="display:none" onchange="timeEditChanged('pickup','out',this.value)">
+              <button class="time-btn btn-ghost" id="puCheckOutEditBtn" onclick="toggleTimeEdit('pickup','out')" style="font-size:11px;padding:6px 10px;display:none">✏️</button>
+            </div>
+            <div class="time-duration" id="puDuration"></div>
+          </div>
+
+          <!-- HELPER SELECTION — PICKUP -->
+          <div class="helper-section" id="pickupHelperSection">
+            <div class="helper-title">👥 Who Helped? — Pickup</div>
+            <div class="helper-chips" id="pickupHelperChips">
+              <span class="helper-none">Loading helpers...</span>
+            </div>
+          </div>
+
+          <!-- PHOTO CAPTURE — PICKUP -->
+          <div class="photo-item" id="pickupPhotoSection">
+            <div class="photo-item-title">📸 Site Photo — Required Before Leaving</div>
+            <div class="photo-btns">
+              <label class="photo-btn" id="pickupCameraLabel">
+                📷 Take Photo
+                <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this,'pickup')">
+              </label>
+              <label class="photo-btn" id="pickupGalleryLabel">
+                🖼 Upload Photo
+                <input type="file" accept="image/*" style="display:none" onchange="handlePhoto(this,'pickup')">
+              </label>
+            </div>
+            <img id="pickupPhotoPreview" class="photo-preview" alt="Pickup photo">
+            <div id="pickupPhotoStatus" class="photo-status">✅ Photo saved to Drive</div>
+          </div>
+
+          <div class="checklist-section">
+            <div class="checklist-section-title">🔍 Site Check</div>
+            <div id="siteCheckList"></div>
+          </div>
+
+          <div class="checklist-section">
+            <div class="checklist-section-title">🤝 Client Close & Review</div>
+            <div id="clientCloseList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-success" id="completeBtn" onclick="confirmComplete()">✅ Mark Complete</button>
+      <button class="btn btn-ghost" onclick="openTextsPanel()" style="padding:10px 13px;">💬</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">🗑</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK TEXTS MODAL -->
+<div class="modal-overlay" id="textsOverlay">
+  <div class="texts-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="texts-header" style="margin-bottom:0">💬 Quick Texts</div>
+      <button class="modal-close" style="background:var(--off-white);color:var(--navy)" onclick="closeTextsPanel()">✕</button>
+    </div>
+    <div id="textsContainer"></div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-box" id="confirmBox">
+  <div class="confirm-inner">
+    <div class="confirm-icon" id="confirmIcon">⚠️</div>
+    <div class="confirm-msg" id="confirmMsg">Are you sure?</div>
+    <div class="confirm-sub" id="confirmSub"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" onclick="cancelConfirm()">Cancel</button>
+      <button class="btn btn-danger" onclick="executeConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// CONFIG — paste your Apps Script URL here
+// =============================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyinjhKOpiC7CI9GXZ5Fk2LqPgUp1E6GfPxAowsQKzouaaRp-mayfrmoVN5Lt4uO2k/exec';
+
+// =============================================
+// STATE
+// =============================================
+let allJobs        = { active: [], completed: [] };
+let currentJob     = null;
+let confirmCallback = null;
+let checkStates    = {};
+let photoStates    = {};
+let timeCards      = {};   // { "orderNum:delivery": { in: "HH:MM", out: "HH:MM" } }
+let helperSelections = {}; // { "orderNum:delivery": ["Raymond","Ashton"] }
+let helperRoster   = [];   // loaded from sheet
+
+// =============================================
+// INIT
+// =============================================
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(function(e) { console.log('SW reg failed:', e); });
+}
+
+document.addEventListener('DOMContentLoaded', () => { loadJobs(); setupDragDrop(); });
+
+// =============================================
+// STATUS LOGIC
+// Upcoming: delivery > 2 days away
+// Active:   delivery <= 1 day away (not yet complete)
+// Completed: manually marked
+// =============================================
+function getJobDisplayStatus(job) {
+  if (job.status === 'Completed') return 'completed';
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const delivery = new Date(job.deliveryDate);
+  delivery.setHours(0,0,0,0);
+  const daysUntil = Math.ceil((delivery - now) / (1000 * 60 * 60 * 24));
+  if (daysUntil <= 1) return 'active';
+  return 'upcoming';
+}
+
+// =============================================
+// LOAD JOBS
+// =============================================
+async function loadJobs() {
+  try {
+    const res = await callAppsScript({ action: 'getJobs' });
+    allJobs = res;
+    const allActive = (allJobs.active || []);
+
+    const active    = allActive.filter(j => getJobDisplayStatus(j) === 'active');
+    const upcoming  = allActive.filter(j => getJobDisplayStatus(j) === 'upcoming');
+    const completed = allJobs.completed || [];
+
+    renderJobList('active',    active,    'active');
+    renderJobList('upcoming',  upcoming,  'upcoming');
+    renderJobList('completed', completed, 'completed');
+  } catch(e) { showToast('Could not load jobs: ' + e.message); }
+}
+
+// =============================================
+// RENDER JOB LIST
+// =============================================
+function renderJobList(type, jobs, displayStatus) {
+  const grid  = document.getElementById(type + 'Grid');
+  const count = document.getElementById(type + 'Count');
+  count.textContent = jobs.length;
+  if (!jobs.length) {
+    const icons = { active: '🔥', upcoming: '📋', completed: '✅' };
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">' + icons[type] + '</div><div class="empty-text">No ' + type + ' jobs</div></div>';
+    return;
+  }
+  jobs.sort((a,b) => new Date(a.deliveryDate) - new Date(b.deliveryDate));
+  grid.innerHTML = jobs.map(job => {
+    const ds = displayStatus;
+    const accentClass = ds === 'active' ? 'active' : ds === 'completed' ? 'completed' : '';
+    const badgeClass  = ds === 'active' ? 'badge-active' : ds === 'completed' ? 'badge-completed' : 'badge-upcoming';
+    const badgeText   = ds === 'active' ? 'Active' : ds === 'completed' ? 'Done' : 'Upcoming';
+    const cardClass   = ds === 'active' ? 'job-card active-card' : 'job-card';
+    const hasSvc      = hasSetupService(job.items);
+    return '<div class="' + cardClass + '">' +
+      '<div class="job-card-inner" onclick="openJob(\'' + job.orderNum + '\')">' +
+        '<div class="job-accent ' + accentClass + '"></div>' +
+        '<div class="job-main">' +
+          '<div class="job-client">' + esc(job.clientName) + '</div>' +
+          '<div class="job-meta">' +
+            '<span class="job-order">#' + esc(job.orderNum) + '</span>' +
+            '<span class="job-date">📅 ' + job.deliveryDate + '</span>' +
+          '</div>' +
+          '<div class="job-items">' + esc(job.itemsSummary || '') + '</div>' +
+          '<div class="tag-row">' +
+            (job.hasTent   === 'Yes' ? '<span class="tag tent">⛺ Tent</span>'    : '') +
+            (job.hasTables === 'Yes' ? '<span class="tag tables">🪑 Tables</span>' : '') +
+            (job.hasChairs === 'Yes' ? '<span class="tag chairs">🪑 Chairs</span>' : '') +
+            (job.hasExtras === 'Yes' ? '<span class="tag extras">✨ Extras</span>' : '') +
+            (hasSvc                  ? '<span class="tag service">🔧 Service</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">' +
+          '<span class="status-badge ' + badgeClass + '">' + badgeText + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="padding:0 16px 10px;display:flex;justify-content:flex-end;">' +
+        '<button class="card-delete-btn" onclick="event.stopPropagation();cardDelete(\'' + job.orderNum + '\',\'' + esc(job.clientName) + '\')">🗑 Delete</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// =============================================
+// OPEN JOB
+// =============================================
+function openJob(orderNum) {
+  const all = [...(allJobs.active||[]), ...(allJobs.completed||[])];
+  const job = all.find(j => String(j.orderNum) === String(orderNum));
+  if (!job) return;
+  currentJob = job;
+
+  document.getElementById('modalClient').textContent = job.clientName;
+  document.getElementById('modalOrder').textContent  = '#' + job.orderNum + '  ·  ' + job.deliveryDate + ' → ' + (job.pickupDate || '?');
+  document.getElementById('modalAddr').textContent   = job.address || '';
+  document.getElementById('completeBtn').style.display = job.status === 'Completed' ? 'none' : '';
+
+  populateChecklists(job);
+  resetPhotoUI();
+  resetTimeCards();
+  loadHelpers().then(function() {
+    renderHelperChips('delivery');
+    renderHelperChips('pickup');
+    // Restore saved selections
+    updateTimeCardUI('delivery');
+    updateTimeCardUI('pickup');
+  });
+  updatePickupLock();
+  switchTab('delivery', document.getElementById('tabBtnDelivery'));
+  document.getElementById('jobModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('jobModal').classList.remove('open'); currentJob = null; }
+
+// =============================================
+// PICKUP TAB LOCK
+// =============================================
+function isDeliveryComplete() {
+  if (!currentJob) return false;
+  // Check photo captured
+  const photoKey = currentJob.orderNum + ':delivery';
+  if (!photoStates[photoKey]) return false;
+  // Check all delivery checkboxes checked
+  const deliveryTab = document.getElementById('tab-delivery');
+  const items = deliveryTab.querySelectorAll('.check-item');
+  for (let item of items) {
+    if (!item.classList.contains('checked')) return false;
+  }
+  return true;
+}
+
+function updatePickupLock() {
+  const done = isDeliveryComplete();
+  const pickupBtn     = document.getElementById('tabBtnPickup');
+  const lockBanner    = document.getElementById('pickupLockBanner');
+  const pickupContent = document.getElementById('pickupContent');
+
+  if (done) {
+    pickupBtn.classList.remove('locked');
+    lockBanner.innerHTML = '';
+    pickupContent.style.display = '';
+  } else {
+    pickupBtn.classList.add('locked');
+    pickupContent.style.display = 'none';
+    lockBanner.innerHTML =
+      '<div class="lock-banner">' +
+        '<div class="lock-banner-icon">🔒</div>' +
+        '<div class="lock-banner-text">Delivery checklist must be completed first</div>' +
+        '<div style="font-size:12px;margin-top:4px;">Complete all delivery items and take a site photo to unlock pickup.</div>' +
+      '</div>';
+  }
+}
+
+function tryPickupTab(btn) {
+  if (btn.classList.contains('locked')) {
+    showToast('Complete the delivery checklist first');
+    return;
+  }
+  switchTab('pickup', btn);
+}
+
+// =============================================
+// TABS
+// =============================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (!b.classList.contains('locked')) b.classList.remove('active');
+    else b.classList.remove('active');
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// =============================================
+// POPULATE CHECKLISTS
+// =============================================
+function populateChecklists(job) {
+  const allItems  = job.items || [];
+  const items     = physicalItems(allItems);
+  const hasTent   = job.hasTent   === 'Yes';
+  const hasTables = job.hasTables === 'Yes';
+  const hasChairs = job.hasChairs === 'Yes';
+  const hasExtras = job.hasExtras === 'Yes';
+  const hasSvc    = hasSetupService(allItems);
+  const fname     = firstName(job.clientName);
+
+  // Service notice
+  const svcHtml = hasSvc ? '<div class="service-notice"><div class="service-notice-icon">🔧</div><div class="service-notice-text">Paid Setup & Breakdown Service<div class="service-notice-sub">Full walkthrough required · Client approved layout</div></div></div>' : '';
+  document.getElementById('deliveryServiceNotice').innerHTML = svcHtml;
+  document.getElementById('pickupServiceNotice').innerHTML   = svcHtml;
+
+  // DELIVERY: Items
+  document.getElementById('deliveryItemList').innerHTML = items.length
+    ? items.map((i,idx) => checkItem('del-item-' + idx, i.qty + '\u00d7 ' + i.name, i.category)).join('')
+    : noItems();
+
+  // DELIVERY: Tent inspection
+  if (hasTent) {
+    document.getElementById('tentInspectionSection').style.display = '';
+    document.getElementById('tentInspection').innerHTML = [
+      ['tent-straps', 'Ratchet straps tightened', 'All high peak frame tents'],
+      ['tent-poles',  'Poles fully seated and locked'],
+      ['tent-fabric', 'Fabric properly tensioned'],
+      ['tent-stakes', 'All stakes fully driven — none above grade', '\u26a0\ufe0f Liability item'],
+      ['tent-walk',   'Full perimeter walk complete'],
+    ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+  } else {
+    document.getElementById('tentInspectionSection').style.display = 'none';
+  }
+
+  // DELIVERY: Tables & chairs
+  document.getElementById('tablesChairsSection').style.display = (hasTables || hasChairs) ? '' : 'none';
+  const savedTier = checkStates[job.orderNum + ':tier'] || '';
+  if (savedTier) document.getElementById('setupTier').value = savedTier;
+
+  // DELIVERY: Extras
+  if (hasExtras) {
+    document.getElementById('extrasDeliverySection').style.display = '';
+    const hasFans   = items.some(function(i) { return /fan/i.test(i.name); });
+    const hasLights = items.some(function(i) { return /light/i.test(i.name); });
+    const hasGames  = items.some(function(i) { return /game|yard/i.test(i.name); });
+    var ex = [];
+    if (hasFans)   ex.push(['ext-fans',   'Fans placed and tested']);
+    if (hasLights) ex.push(['ext-lights', 'String lights hung and tested']);
+    if (hasGames)  ex.push(['ext-games',  'Yard games placed']);
+    if (!ex.length) ex.push(['ext-other', 'All extras placed and verified']);
+    document.getElementById('extrasDeliveryList').innerHTML = ex.map(function(a) { return checkItem(a[0], a[1]); }).join('');
+  } else {
+    document.getElementById('extrasDeliverySection').style.display = 'none';
+  }
+
+  // DELIVERY: Client walkthrough
+  buildDeliveryWalkthrough(hasTent, hasTables, hasChairs, hasSvc, fname);
+
+  // DELIVERY: Business cards
+  document.getElementById('businessCardsList').innerHTML = [
+    ['bc-cards', 'Leave business cards with the client'],
+  ].map(function(a) { return checkItem(a[0], a[1]); }).join('');
+
+  // PICKUP: Items
+  document.getElementById('pickupItemList').innerHTML = items.length
+    ? items.map(function(i, idx) { return checkItem('pu-item-' + idx, i.qty + '\u00d7 ' + i.name, i.category); }).join('')
+    : noItems();
+
+  // PICKUP: Tent
+  if (hasTent) {
+    document.getElementById('tentPickupSection').style.display = '';
+    document.getElementById('tentPickupList').innerHTML = [
+      ['pu-straps', 'Release all ratchet straps'],
+      ['pu-poles',  'Break down all poles'],
+      ['pu-stakes', 'Pull ALL stakes — full perimeter walk', '\u26a0\ufe0f Zero stakes left — liability item'],
+      ['pu-fold',   'Fold and bag all fabric'],
+    ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+  } else {
+    document.getElementById('tentPickupSection').style.display = 'none';
+  }
+
+  // PICKUP: Tables & chairs
+  if (hasTables || hasChairs) {
+    document.getElementById('tablesPickupSection').style.display = '';
+    var tcItems;
+    if (hasSvc) {
+      tcItems = [
+        ['pu-breakdown', 'Break down all items per approved layout'],
+        ['pu-fold-t',    'Fold and load all tables'],
+        ['pu-load-c',    'Load all chairs'],
+        ['pu-count',     'Confirm count matches order'],
+      ];
+    } else {
+      tcItems = [
+        ['pu-check-stack', 'Verify tables and chairs are stacked by client'],
+        ['pu-fold-t',      'Fold any tables not already folded'],
+        ['pu-load-c',      'Load all chairs'],
+        ['pu-count',       'Confirm count matches order'],
+      ];
+    }
+    document.getElementById('tablesPickupList').innerHTML = tcItems.map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+  } else {
+    document.getElementById('tablesPickupSection').style.display = 'none';
+  }
+
+  // PICKUP: Extras
+  if (hasExtras) {
+    document.getElementById('extrasPickupSection').style.display = '';
+    const hasFans   = items.some(function(i) { return /fan/i.test(i.name); });
+    const hasLights = items.some(function(i) { return /light/i.test(i.name); });
+    const hasGames  = items.some(function(i) { return /game|yard/i.test(i.name); });
+    var exPu = [];
+    if (hasFans)   exPu.push(['pu-fans',   'Retrieve all fans']);
+    if (hasLights) exPu.push(['pu-lights', 'Take down all string lights']);
+    if (hasGames)  exPu.push(['pu-games',  'Break down and load yard games']);
+    if (!exPu.length) exPu.push(['pu-extras', 'Retrieve all extras']);
+    document.getElementById('extrasPickupList').innerHTML = exPu.map(function(a) { return checkItem(a[0], a[1]); }).join('');
+  } else {
+    document.getElementById('extrasPickupSection').style.display = 'none';
+  }
+
+  // PICKUP: Site check
+  document.getElementById('siteCheckList').innerHTML = [
+    ['sc-debris', 'Clear all debris from site'],
+    ['sc-360',    '360 walk — nothing left behind'],
+    ['sc-better', 'Site in same or better condition than arrival'],
+  ].map(function(a) { return checkItem(a[0], a[1]); }).join('');
+
+  // PICKUP: Client close & review cards
+  document.getElementById('clientCloseList').innerHTML = [
+    ['cc-notify',  'Notify client if present'],
+    ['cc-review',  'Leave review card with client', 'Hand it to them or leave with a handwritten sticky'],
+    ['cc-flag',    'Flag for follow-up text if no review yet'],
+  ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+
+  // Restore saved states
+  restoreChecks(job.orderNum);
+  restorePhotos(job.orderNum);
+}
+
+// =============================================
+// DELIVERY WALKTHROUGH
+// =============================================
+function buildDeliveryWalkthrough(hasTent, hasTables, hasChairs, hasSvc, fname) {
+  const titleEl = document.getElementById('walkthroughTitle');
+
+  if (hasTent) {
+    titleEl.textContent = '\ud83d\udde3 Client Walkthrough';
+    document.getElementById('clientWalkthrough').innerHTML = [
+      ['wt-stakes',  'Point out all stake locations to client', '\u26a0\ufe0f Liability — be thorough'],
+      ['wt-weather', 'Cover weather protocol'],
+      ['wt-phone',   'Confirm client cell number'],
+      ['wt-pickup',  'Confirm pickup window with client'],
+    ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+    return;
+  }
+
+  if ((hasTables || hasChairs) && hasSvc) {
+    titleEl.textContent = '\ud83d\udde3 Client Walkthrough — Full Setup';
+    document.getElementById('clientWalkthrough').innerHTML = [
+      ['wt-layout',       'Walk client through final approved layout'],
+      ['wt-approve',      'Get verbal client approval on setup'],
+      ['wt-pickup',       'Confirm pickup window with client'],
+      ['wt-pickup-note',  'Let client know we handle all breakdown — no stacking needed', 'No stacking required from client'],
+    ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+    return;
+  }
+
+  if (hasTables || hasChairs) {
+    titleEl.textContent = '\ud83d\udde3 Drop-Off Instructions';
+    document.getElementById('clientWalkthrough').innerHTML = [
+      ['wt-confirm', 'Confirm items match the order with client'],
+      ['wt-stack',   'Ask client to have all items stacked and in an easy-to-access location for pickup', 'Neatly stacked near where they were set up'],
+      ['wt-pickup',  'Confirm pickup window with client'],
+    ].map(function(a) { return checkItem(a[0], a[1], a[2]); }).join('');
+    return;
+  }
+
+  titleEl.textContent = '\ud83d\udde3 Client Handoff';
+  document.getElementById('clientWalkthrough').innerHTML = [
+    ['wt-confirm', 'Confirm all items placed and accounted for'],
+    ['wt-pickup',  'Confirm pickup window with client'],
+  ].map(function(a) { return checkItem(a[0], a[1]); }).join('');
+}
+
+// =============================================
+// TIME CARD
+// =============================================
+function timeCardAction(phase, action) {
+  if (!currentJob) return;
+  const key   = currentJob.orderNum + ':' + phase;
+  if (!timeCards[key]) timeCards[key] = { in: null, out: null };
+
+  const now = new Date();
+  const hh  = String(now.getHours()).padStart(2,'0');
+  const mm  = String(now.getMinutes()).padStart(2,'0');
+  const timeStr = hh + ':' + mm;
+
+  if (action === 'in') {
+    timeCards[key].in = timeStr;
+  } else {
+    timeCards[key].out = timeStr;
+  }
+  updateTimeCardUI(phase);
+}
+
+function timeEditChanged(phase, action, val) {
+  if (!currentJob) return;
+  const key = currentJob.orderNum + ':' + phase;
+  if (!timeCards[key]) timeCards[key] = { in: null, out: null };
+  timeCards[key][action] = val;
+  updateTimeCardUI(phase);
+}
+
+function toggleTimeEdit(phase, action) {
+  const prefix  = phase === 'delivery' ? 'del' : 'pu';
+  const suffix  = action === 'in' ? 'CheckIn' : 'CheckOut';
+  const editEl  = document.getElementById(prefix + suffix + 'Edit');
+  const editBtn = document.getElementById(prefix + suffix + 'EditBtn');
+  if (!editEl) return;
+  const showing = editEl.style.display !== 'none';
+  editEl.style.display = showing ? 'none' : '';
+  // Pre-fill with current value
+  const key = currentJob ? currentJob.orderNum + ':' + phase : null;
+  if (key && timeCards[key] && timeCards[key][action]) {
+    editEl.value = timeCards[key][action];
+  }
+}
+
+function updateTimeCardUI(phase) {
+  if (!currentJob) return;
+  const key    = currentJob.orderNum + ':' + phase;
+  const card   = timeCards[key] || {};
+  const prefix = phase === 'delivery' ? 'del' : 'pu';
+
+  const inDisplay  = document.getElementById(prefix + 'CheckInDisplay');
+  const outDisplay = document.getElementById(prefix + 'CheckOutDisplay');
+  const outBtn     = document.getElementById(prefix + 'CheckOutBtn');
+  const inEditBtn  = document.getElementById(prefix + 'CheckInEditBtn');
+  const outEditBtn = document.getElementById(prefix + 'CheckOutEditBtn');
+  const durEl      = document.getElementById(prefix.replace('del','del').replace('pu','pu') + 'Duration');
+
+  if (inDisplay)  inDisplay.textContent  = card.in  || '--:--';
+  if (outDisplay) outDisplay.textContent = card.out || '--:--';
+  if (outBtn)     outBtn.disabled = !card.in;
+  if (inEditBtn)  inEditBtn.style.display = card.in  ? '' : 'none';
+  if (outEditBtn) outEditBtn.style.display = card.out ? '' : 'none';
+
+  // Calculate duration
+  const durEl2 = document.getElementById(prefix === 'del' ? 'delDuration' : 'puDuration');
+  if (durEl2 && card.in && card.out) {
+    const [inH,  inM]  = card.in.split(':').map(Number);
+    const [outH, outM] = card.out.split(':').map(Number);
+    let mins = (outH * 60 + outM) - (inH * 60 + inM);
+    if (mins < 0) mins += 24 * 60; // next day
+    const hours = mins / 60;
+    const rounded = Math.ceil(hours * 4) / 4;
+    durEl2.textContent = '⏱ Duration: ' + rounded.toFixed(2) + ' hrs (rounded to nearest 0.25)';
+  } else if (durEl2) {
+    durEl2.textContent = '';
+  }
+}
+
+function resetTimeCards() {
+  ['delivery','pickup'].forEach(function(phase) {
+    const prefix = phase === 'delivery' ? 'del' : 'pu';
+    const inDisplay  = document.getElementById(prefix + 'CheckInDisplay');
+    const outDisplay = document.getElementById(prefix + 'CheckOutDisplay');
+    const outBtn     = document.getElementById(prefix + 'CheckOutBtn');
+    const inEditBtn  = document.getElementById(prefix + 'CheckInEditBtn');
+    const outEditBtn = document.getElementById(prefix + 'CheckOutEditBtn');
+    const durEl      = document.getElementById(prefix === 'del' ? 'delDuration' : 'puDuration');
+    if (inDisplay)  inDisplay.textContent  = '--:--';
+    if (outDisplay) outDisplay.textContent = '--:--';
+    if (outBtn)     outBtn.disabled = true;
+    if (inEditBtn)  inEditBtn.style.display = 'none';
+    if (outEditBtn) outEditBtn.style.display = 'none';
+    if (durEl)      durEl.textContent = '';
+  });
+}
+
+function getHoursFromTimeCard(phase) {
+  if (!currentJob) return 0;
+  const key  = currentJob.orderNum + ':' + phase;
+  const card = timeCards[key] || {};
+  if (!card.in || !card.out) return 0;
+  const [inH,  inM]  = card.in.split(':').map(Number);
+  const [outH, outM] = card.out.split(':').map(Number);
+  let mins = (outH * 60 + outM) - (inH * 60 + inM);
+  if (mins < 0) mins += 24 * 60;
+  return Math.ceil((mins / 60) * 4) / 4;
+}
+
+// =============================================
+// HELPER SELECTION
+// =============================================
+async function loadHelpers() {
+  if (helperRoster.length > 0) return; // already loaded
+  try {
+    const res = await callAppsScript({ action: 'getHelpers' });
+    helperRoster = res.helpers || [];
+  } catch(e) {
+    helperRoster = [];
+  }
+}
+
+function renderHelperChips(phase) {
+  const chipsEl = document.getElementById(phase + 'HelperChips');
+  if (!chipsEl) return;
+  if (!helperRoster.length) {
+    chipsEl.innerHTML = '<span class="helper-none">No helpers configured in Settings</span>';
+    return;
+  }
+  const key      = currentJob ? currentJob.orderNum + ':' + phase : '';
+  const selected = (key && helperSelections[key]) ? helperSelections[key] : [];
+
+  chipsEl.innerHTML = helperRoster.map(function(h) {
+    const isSel = selected.includes(h.name);
+    return '<div class="helper-chip' + (isSel ? ' selected' : '') + '" onclick="toggleHelper('' + phase + '','' + h.name.replace(/'/g,"\'") + '')">' + h.name + '</div>';
+  }).join('');
+}
+
+function toggleHelper(phase, name) {
+  if (!currentJob) return;
+  const key = currentJob.orderNum + ':' + phase;
+  if (!helperSelections[key]) helperSelections[key] = [];
+  const arr = helperSelections[key];
+  const idx = arr.indexOf(name);
+  if (idx === -1) {
+    if (arr.length >= 3) { showToast('Max 3 helpers per phase'); return; }
+    arr.push(name);
+  } else {
+    arr.splice(idx, 1);
+  }
+  renderHelperChips(phase);
+}
+
+async function saveTimeCardToSheet(phase) {
+  if (!currentJob) return;
+  const hours   = getHoursFromTimeCard(phase);
+  const key     = currentJob.orderNum + ':' + phase;
+  const helpers = helperSelections[key] || [];
+  if (hours === 0 && helpers.length === 0) return; // nothing to save
+  try {
+    await callAppsScript({
+      action:   'saveTimeCard',
+      orderNum: currentJob.orderNum,
+      phase:    phase,
+      helpers:  helpers,
+      hours:    hours
+    }, false);
+  } catch(e) {
+    console.log('saveTimeCard error:', e.message);
+  }
+}
+
+// =============================================
+// PHOTO HANDLING
+// =============================================
+function handlePhoto(input, tab) {
+  const file = input.files[0];
+  if (!file || !currentJob) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Show preview immediately
+    const preview = document.getElementById(tab + 'PhotoPreview');
+    preview.src = e.target.result;
+    preview.classList.add('show');
+
+    // Update button state
+    const cameraLabel  = document.getElementById(tab + 'CameraLabel');
+    const galleryLabel = document.getElementById(tab + 'GalleryLabel');
+    if (cameraLabel)  cameraLabel.classList.add('captured');
+    if (galleryLabel) galleryLabel.classList.add('captured');
+    const photoSection = document.getElementById(tab + 'PhotoSection');
+    if (photoSection) photoSection.classList.add('captured');
+
+    // Mark captured locally right away so pickup unlocks
+    photoStates[currentJob.orderNum + ':' + tab] = true;
+    updatePickupLock();
+
+    // Compress image before uploading to stay under Apps Script payload limit
+    compressAndUpload(e.target.result, tab);
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetPhotoUI() {
+  ['delivery','pickup'].forEach(function(tab) {
+    // Clear preview
+    const preview = document.getElementById(tab + 'PhotoPreview');
+    if (preview) { preview.src = ''; preview.classList.remove('show'); }
+    // Reset buttons
+    const cameraLabel  = document.getElementById(tab + 'CameraLabel');
+    const galleryLabel = document.getElementById(tab + 'GalleryLabel');
+    if (cameraLabel)  cameraLabel.classList.remove('captured');
+    if (galleryLabel) galleryLabel.classList.remove('captured');
+    // Reset section
+    const section = document.getElementById(tab + 'PhotoSection');
+    if (section) section.classList.remove('captured');
+    // Reset status
+    const status = document.getElementById(tab + 'PhotoStatus');
+    if (status) { status.textContent = ''; status.classList.remove('show'); status.style.color = ''; }
+    // Reset file inputs
+    const inputs = document.querySelectorAll('#' + tab + 'PhotoSection input[type="file"]');
+    inputs.forEach(function(inp) { inp.value = ''; });
+  });
+}
+
+function compressAndUpload(dataUrl, tab) {
+  const img = new Image();
+  img.onload = function() {
+    const canvas = document.createElement('canvas');
+    // Aggressive compression — max 800px, 50% quality keeps under 300KB
+    const MAX = 800;
+    let w = img.width, h = img.height;
+    if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+    else if (h > MAX)     { w = Math.round(w * MAX / h); h = MAX; }
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const compressed = canvas.toDataURL('image/jpeg', 0.50);
+    const base64 = compressed.split(',')[1];
+    // Log size for debugging
+    const sizeKB = Math.round(base64.length * 0.75 / 1024);
+    console.log('Photo compressed to ~' + sizeKB + 'KB for upload');
+    const label = tab + '_' + currentJob.orderNum + '_' + currentJob.clientName.replace(/\s+/g, '_');
+    uploadPhoto(base64, label, tab);
+  };
+  img.src = dataUrl;
+}
+
+async function uploadPhoto(base64, label, tab) {
+  const statusEl = document.getElementById(tab + 'PhotoStatus');
+  // Build month folder name from delivery date
+  let monthFolder = 'Unknown Month';
+  try {
+    const d = new Date(currentJob.deliveryDate);
+    monthFolder = d.toLocaleString('en-US', { month: 'long' }) + ' ' + d.getFullYear();
+  } catch(e) {}
+  try {
+    const res = await callAppsScript({
+      action: 'uploadPhoto',
+      orderNum: currentJob.orderNum,
+      clientName: currentJob.clientName,
+      monthFolder: monthFolder,
+      photoBase64: base64,
+      label: label
+    }, false);
+    if (res.success) {
+      if (statusEl) { statusEl.textContent = '\u2705 Photo saved to Drive: ' + res.fileName; statusEl.classList.add('show'); }
+    } else {
+      if (statusEl) { statusEl.textContent = '\u26a0\ufe0f Saved locally only — Drive upload failed'; statusEl.style.color = 'var(--warning)'; statusEl.classList.add('show'); }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '\u26a0\ufe0f Saved locally only'; statusEl.style.color = 'var(--warning)'; statusEl.classList.add('show'); }
+  }
+}
+
+function restorePhotos(orderNum) {
+  ['delivery','pickup'].forEach(function(tab) {
+    if (photoStates[orderNum + ':' + tab]) {
+      const section = document.getElementById(tab + 'PhotoSection');
+      if (section) section.classList.add('captured');
+    }
+  });
+}
+
+// =============================================
+// CHECKLIST HELPERS
+// =============================================
+function sanitizeId(str) {
+  return String(str).replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+function checkItem(id, label, sub) {
+  const safeId = sanitizeId(id);
+  return '<div class="check-item" id="ci-' + safeId + '" onclick="toggleCheck(\'' + safeId + '\')">' +
+    '<div class="check-box"></div>' +
+    '<div><div class="check-label">' + label + '</div>' +
+    (sub ? '<div class="check-sub">' + sub + '</div>' : '') +
+    '</div></div>';
+}
+
+function noItems() { return '<div style="font-size:13px;color:var(--gray-400);padding:4px 0">No items on this order</div>'; }
+
+function toggleCheck(id) {
+  const el = document.getElementById('ci-' + id);
+  if (!el) return;
+  el.classList.toggle('checked');
+  if (currentJob) {
+    checkStates[currentJob.orderNum + ':' + id] = el.classList.contains('checked');
+    updatePickupLock();
+  }
+}
+
+function restoreChecks(orderNum) {
+  Object.keys(checkStates).forEach(function(key) {
+    if (key.startsWith(orderNum + ':')) {
+      const id = key.split(':').slice(1).join(':');
+      const el = document.getElementById('ci-' + id);
+      if (el) el.classList.toggle('checked', checkStates[key]);
+    }
+  });
+}
+
+function saveTier(val) { if (currentJob) checkStates[currentJob.orderNum + ':tier'] = val; }
+
+// =============================================
+// COMPLETE / DELETE
+// =============================================
+function confirmComplete() {
+  showConfirm('\u2705', 'Mark Job Complete?',
+    'Move ' + currentJob.clientName + ' (#' + currentJob.orderNum + ') to Completed?',
+    async function() {
+      try {
+        // Save time cards to sheet before completing
+        await saveTimeCardToSheet('delivery');
+        await saveTimeCardToSheet('pickup');
+        await callAppsScript({ action: 'completeJob', orderNum: currentJob.orderNum });
+        showToast('\u2705 Job marked complete');
+        closeModal(); loadJobs();
+      } catch(e) { showToast('\u26a0\ufe0f ' + e.message); }
+    });
+}
+
+function confirmDelete() {
+  showConfirm('\ud83d\uddd1', 'Delete This Job?',
+    'Permanently delete ' + currentJob.clientName + ' (#' + currentJob.orderNum + ') from all sheets. Cannot be undone.',
+    async function() {
+      try {
+        await callAppsScript({ action: 'deleteJob', orderNum: currentJob.orderNum }, false);
+        showToast('\ud83d\uddd1 Job deleted');
+        closeModal(); loadJobs();
+      } catch(e) { showToast('\u26a0\ufe0f ' + e.message); }
+    });
+}
+
+function cardDelete(orderNum, clientName) {
+  showConfirm('\ud83d\uddd1', 'Delete This Job?',
+    'Permanently delete ' + clientName + ' (#' + orderNum + ') from all sheets. Cannot be undone.',
+    async function() {
+      try {
+        await callAppsScript({ action: 'deleteJob', orderNum: orderNum }, false);
+        showToast('\ud83d\uddd1 Job deleted');
+        loadJobs();
+      } catch(e) { showToast('\u26a0\ufe0f ' + e.message); }
+    });
+}
+
+function showConfirm(icon, msg, sub, cb) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmMsg').textContent  = msg;
+  document.getElementById('confirmSub').textContent  = sub;
+  confirmCallback = cb;
+  document.getElementById('confirmBox').classList.add('open');
+}
+function cancelConfirm()  { document.getElementById('confirmBox').classList.remove('open'); confirmCallback = null; }
+function executeConfirm() { document.getElementById('confirmBox').classList.remove('open'); if (confirmCallback) confirmCallback(); confirmCallback = null; }
+
+// =============================================
+// QUICK TEXTS
+// =============================================
+function openTextsPanel() {
+  document.getElementById('textsOverlay').classList.add('open');
+  renderTexts(buildQuickTexts());
+}
+function closeTextsPanel() { document.getElementById('textsOverlay').classList.remove('open'); }
+
+function buildQuickTexts() {
+  const name = currentJob ? firstName(currentJob.clientName) : '[Name]';
+  return [
+    {
+      label: '\ud83d\ude9a En Route',
+      body: 'Hey ' + name + ', this is Cedric with Hunter Tents & Events. We are on our way and should be arriving shortly. Please let us know if you have any questions \u2014 we appreciate your business!'
+    },
+    {
+      label: '\u2705 Drop-Off Complete',
+      body: 'Hey ' + name + ', this is Cedric with Hunter Tents & Events. Just finished your setup \u2014 everything is good to go! If we took care of you today, I\'d really appreciate a quick Google review when you get a chance: https://g.page/r/CRJ9OejtkgyIEAE/review. It means a lot to a small local business. Thanks!'
+    },
+    {
+      label: '\ud83d\udccb Final Follow-Up (1 week, no review)',
+      body: 'Hey [Name], this is Cedric with Hunter Tents & Events. I hope your event went great! If you have just a minute I\'d really appreciate a Google review \u2014 it goes a long way for a small local business like ours: https://g.page/r/CRJ9OejtkgyIEAE/review. Thanks so much!'
+    }
+  ];
+}
+
+function renderTexts(texts) {
+  document.getElementById('textsContainer').innerHTML = texts.map(function(t, i) {
+    return '<div class="text-card">' +
+      '<div class="text-card-label">' + t.label + '</div>' +
+      '<div class="text-body" id="textBody' + i + '">' + t.body + '</div>' +
+      '<button class="copy-btn" id="copyBtn' + i + '" onclick="copyText(' + i + ')">📋 Copy to Clipboard</button>' +
+    '</div>';
+  }).join('');
+}
+
+function copyText(i) {
+  const text = document.getElementById('textBody' + i).textContent;
+  const btn  = document.getElementById('copyBtn' + i);
+
+  // Try modern clipboard API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      flashCopied(btn);
+    }).catch(function() {
+      fallbackCopy(text, btn);
+    });
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function fallbackCopy(text, btn) {
+  // Works on file:// and older Android browsers
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    flashCopied(btn);
+  } catch(e) {
+    showToast('Long-press the text above to copy manually');
+  }
+  document.body.removeChild(ta);
+}
+
+function flashCopied(btn) {
+  btn.textContent = '\u2705 Copied!';
+  btn.classList.add('copied');
+  setTimeout(function() { btn.textContent = '\ud83d\udccb Copy to Clipboard'; btn.classList.remove('copied'); }, 2500);
+}
+
+// =============================================
+// FILE UPLOAD & PDF PARSING
+// =============================================
+function setupDragDrop() {
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    handleFiles(Array.from(e.dataTransfer.files).filter(function(f) { return f.type === 'application/pdf'; }));
+  });
+}
+
+function handleFileSelect(e) { handleFiles(Array.from(e.target.files)); e.target.value = ''; }
+
+async function handleFiles(files) {
+  if (!files.length) return;
+  const wrap = document.getElementById('progressWrap');
+  const label = document.getElementById('progressLabel');
+  const fill  = document.getElementById('progressFill');
+  wrap.style.display = 'block';
+  let ok = 0;
+  for (let i = 0; i < files.length; i++) {
+    label.textContent = 'Processing ' + (i+1) + ' of ' + files.length + ': ' + files[i].name;
+    fill.style.width = ((i / files.length) * 100) + '%';
+    try {
+      const b64    = await fileToBase64(files[i]);
+      const parsed = await parsePDFWithClaude(b64);
+      if (parsed) {
+        const result = await callAppsScript({ action: 'addJob', job: parsed }, false);
+        if (result.success) { ok++; }
+        else { showToast('\u26a0\ufe0f ' + result.error); }
+      }
+    } catch(e) { showToast('\u26a0\ufe0f ' + files[i].name + ': ' + e.message); }
+  }
+  fill.style.width = '100%';
+  setTimeout(function() { wrap.style.display = 'none'; fill.style.width = '0%'; }, 800);
+  if (ok > 0) { showToast('\u2705 ' + ok + ' order' + (ok > 1 ? 's' : '') + ' added'); loadJobs(); }
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    const r = new FileReader();
+    r.onload = function() { resolve(r.result.split(',')[1]); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function parsePDFWithClaude(base64) {
+  const res = await callAppsScript({ action: 'parsePDF', base64: base64 });
+  if (!res.parsed) throw new Error(res.error || 'PDF parsing failed');
+  return res.parsed;
+}
+
+// =============================================
+// APPS SCRIPT
+// =============================================
+async function callAppsScript(payload, throwOnFailure) {
+  if (throwOnFailure === undefined) throwOnFailure = true;
+  const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+  if (!response.ok) throw new Error('Apps Script HTTP ' + response.status);
+  const data = await response.json();
+  if (!data.success && throwOnFailure) throw new Error(data.error || 'Unknown error');
+  return data;
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+function hasSetupService(items) {
+  if (!items || !items.length) return false;
+  return items.some(function(i) { return /set.?up|break.?down/i.test(i.name); });
+}
+
+function physicalItems(items) {
+  if (!items) return [];
+  return items.filter(function(i) { return !/^(chair|table)\s*(set.?up|break.?down)$/i.test(i.name.trim()); });
+}
+
+function firstName(fullName) {
+  if (!fullName) return '';
+  return fullName.trim().split(/\s+/)[0];
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3500);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
