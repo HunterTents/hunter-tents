@@ -348,11 +348,11 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
         </div>
 
         <!-- HELPER SELECTION — DELIVERY -->
-        <div class="helper-section" id="deliveryHelperSection">
-          <div class="helper-title">👥 Who Helped? — Delivery</div>
-          <div class="helper-chips" id="deliveryHelperChips">
-            <span class="helper-none">Loading helpers...</span>
-          </div>
+        <div class="checklist-section">
+          <div class="checklist-section-title">👥 Who Helped? — Delivery</div>
+          <input type="text" id="deliveryHelperInput" placeholder="e.g. Raymond, Ashton"
+            style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;color:var(--navy);background:var(--white);margin-top:4px;"
+            oninput="saveHelperText('delivery', this.value)">
         </div>
 
         <!-- PHOTO CAPTURE — DELIVERY -->
@@ -431,11 +431,11 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
           </div>
 
           <!-- HELPER SELECTION — PICKUP -->
-          <div class="helper-section" id="pickupHelperSection">
-            <div class="helper-title">👥 Who Helped? — Pickup</div>
-            <div class="helper-chips" id="pickupHelperChips">
-              <span class="helper-none">Loading helpers...</span>
-            </div>
+          <div class="checklist-section">
+            <div class="checklist-section-title">👥 Who Helped? — Pickup</div>
+            <input type="text" id="pickupHelperInput" placeholder="e.g. Raymond"
+              style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;color:var(--navy);background:var(--white);margin-top:4px;"
+              oninput="saveHelperText('pickup', this.value)">
           </div>
 
           <!-- PHOTO CAPTURE — PICKUP -->
@@ -506,7 +506,7 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
 // =============================================
 // CONFIG — paste your Apps Script URL here
 // =============================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNX6FGHttWzzWoWIFvcGvLnDQtSdxKSAaU24YuKLMziS6vG-pnJqxiCEv0rFX8aC3-/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMhoaWEsDd8yf2DNsuZ8EPiOm2yuw9wLPXGDYWu3P90xHpONp_ht5zBijQZyun9ShD/exec';
 
 // =============================================
 // STATE
@@ -632,13 +632,14 @@ function openJob(orderNum) {
   populateChecklists(job);
   resetPhotoUI();
   resetTimeCards();
-  loadHelpers().then(function() {
-    renderHelperChips('delivery');
-    renderHelperChips('pickup');
-    // Restore saved selections
-    updateTimeCardUI('delivery');
-    updateTimeCardUI('pickup');
-  });
+  resetHelperInputs();
+  // Restore helper text inputs
+  var delInput = document.getElementById('deliveryHelperInput');
+  var puInput  = document.getElementById('pickupHelperInput');
+  if (delInput) delInput.value = getHelperText('delivery');
+  if (puInput)  puInput.value  = getHelperText('pickup');
+  updateTimeCardUI('delivery');
+  updateTimeCardUI('pickup');
   updatePickupLock();
   switchTab('delivery', document.getElementById('tabBtnDelivery'));
   document.getElementById('jobModal').classList.add('open');
@@ -1003,69 +1004,38 @@ function getHoursFromTimeCard(phase) {
 }
 
 // =============================================
-// HELPER SELECTION
+// HELPER SELECTION — text input based
 // =============================================
-async function loadHelpers() {
-  if (helperRoster.length > 0) return; // already loaded
-  try {
-    const res = await callAppsScript({ action: 'getHelpers' });
-    helperRoster = res.helpers || [];
-  } catch(e) {
-    helperRoster = [];
-  }
-}
-
-function renderHelperChips(phase) {
-  const chipsEl = document.getElementById(phase + 'HelperChips');
-  if (!chipsEl) return;
-  if (!helperRoster.length) {
-    chipsEl.innerHTML = '<span class="helper-none">No helpers configured in Settings</span>';
-    return;
-  }
-  const key      = currentJob ? currentJob.orderNum + ':' + phase : '';
-  const selected = (key && helperSelections[key]) ? helperSelections[key] : [];
-
-  chipsEl.innerHTML = helperRoster.map(function(h) {
-    const isSel = selected.includes(h.name);
-    const chipClass = "helper-chip" + (isSel ? " selected" : "");
-    return '<div class="' + chipClass + '" data-phase="' + phase + '" data-name="' + h.name + '" onclick="toggleHelperChip(this)">' + h.name + '</div>';
-  }).join('');
-}
-
-function toggleHelperChip(el) {
-  const phase = el.getAttribute('data-phase');
-  const name  = el.getAttribute('data-name');
-  toggleHelper(phase, name);
-}
-
-function toggleHelper(phase, name) {
+function saveHelperText(phase, value) {
   if (!currentJob) return;
-  const key = currentJob.orderNum + ':' + phase;
-  if (!helperSelections[key]) helperSelections[key] = [];
-  const arr = helperSelections[key];
-  const idx = arr.indexOf(name);
-  if (idx === -1) {
-    if (arr.length >= 3) { showToast('Max 3 helpers per phase'); return; }
-    arr.push(name);
-  } else {
-    arr.splice(idx, 1);
-  }
-  renderHelperChips(phase);
+  const key = currentJob.orderNum + ':' + phase + ':helpers';
+  helperSelections[key] = value;
+}
+
+function getHelperText(phase) {
+  if (!currentJob) return '';
+  return helperSelections[currentJob.orderNum + ':' + phase + ':helpers'] || '';
+}
+
+function resetHelperInputs() {
+  ['delivery','pickup'].forEach(function(phase) {
+    const el = document.getElementById(phase + 'HelperInput');
+    if (el) el.value = '';
+  });
 }
 
 async function saveTimeCardToSheet(phase) {
   if (!currentJob) return;
-  const hours   = getHoursFromTimeCard(phase);
-  const key     = currentJob.orderNum + ':' + phase;
-  const helpers = helperSelections[key] || [];
-  if (hours === 0 && helpers.length === 0) return; // nothing to save
+  const hours      = getHoursFromTimeCard(phase);
+  const helperText = getHelperText(phase);
+  if (hours === 0 && !helperText) return;
   try {
     await callAppsScript({
-      action:   'saveTimeCard',
-      orderNum: currentJob.orderNum,
-      phase:    phase,
-      helpers:  helpers,
-      hours:    hours
+      action:      'saveTimeCard',
+      orderNum:    currentJob.orderNum,
+      phase:       phase,
+      helperText:  helperText,
+      hours:       hours
     }, false);
   } catch(e) {
     console.log('saveTimeCard error:', e.message);
