@@ -300,6 +300,9 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
       <!-- DELIVERY TAB -->
       <div class="tab-content active" id="tab-delivery">
         <div id="deliveryServiceNotice"></div>
+      <div id="deliveryDoneBanner" style="display:none;background:var(--success);color:white;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;font-weight:600;font-size:13px;">
+        ✅ Delivery completed — checklist locked
+      </div>
 
         <div class="checklist-section">
           <div class="checklist-section-title">📦 Items — Load Out</div>
@@ -468,10 +471,12 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
       </div>
 
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-success" id="completeBtn" onclick="confirmComplete()">✅ Mark Complete</button>
-      <button class="btn btn-ghost" onclick="openTextsPanel()" style="padding:10px 13px;">💬</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">🗑</button>
+    <div class="modal-actions" id="modalActions">
+      <button class="btn btn-ghost" id="deliveryDoneBtn" onclick="confirmDeliveryDone()" style="flex:1;justify-content:center;font-size:12px;">🚚 Delivery Done</button>
+      <button class="btn btn-success" id="pickupDoneBtn" onclick="confirmPickupDone()" style="flex:1;justify-content:center;font-size:12px;">📦 Pickup Done</button>
+      <button class="btn btn-ghost" onclick="openTextsPanel()" style="padding:10px 11px;">💬</button>
+      <button class="btn btn-primary" id="completeBtn" onclick="confirmComplete()" style="padding:10px 11px;font-size:12px;">✅</button>
+      <button class="btn btn-danger" onclick="confirmDelete()" style="padding:10px 11px;">🗑</button>
     </div>
   </div>
 </div>
@@ -506,7 +511,7 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
 // =============================================
 // CONFIG — paste your Apps Script URL here
 // =============================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMhoaWEsDd8yf2DNsuZ8EPiOm2yuw9wLPXGDYWu3P90xHpONp_ht5zBijQZyun9ShD/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4vJ2WXqmv8Rs26FBZaqUGEmBVjI-luR0y0JhlJ7xYFK_wVzRP-UJmQBKdJ0Z678uI/exec';
 
 // =============================================
 // STATE
@@ -633,11 +638,9 @@ function openJob(orderNum) {
   resetPhotoUI();
   resetTimeCards();
   resetHelperInputs();
-  // Restore helper text inputs
-  var delInput = document.getElementById('deliveryHelperInput');
-  var puInput  = document.getElementById('pickupHelperInput');
-  if (delInput) delInput.value = getHelperText('delivery');
-  if (puInput)  puInput.value  = getHelperText('pickup');
+  document.getElementById('deliveryDoneBanner').style.display = 'none';
+  // Restore progress from sheet (async — runs after modal opens)
+  setTimeout(function() { restoreProgress(job.orderNum); }, 100);
   updateTimeCardUI('delivery');
   updateTimeCardUI('pickup');
   updatePickupLock();
@@ -1198,14 +1201,180 @@ function saveTier(val) { if (currentJob) checkStates[currentJob.orderNum + ':tie
 // =============================================
 // COMPLETE / DELETE
 // =============================================
-function confirmComplete() {
-  showConfirm('\u2705', 'Mark Job Complete?',
-    'Move ' + currentJob.clientName + ' (#' + currentJob.orderNum + ') to Completed?',
+// =============================================
+// COLLECT CHECKLIST STATE
+// =============================================
+function collectChecks(tabId) {
+  const tab = document.getElementById(tabId);
+  if (!tab) return [];
+  const checked = [];
+  tab.querySelectorAll('.check-item.checked').forEach(function(el) {
+    checked.push(el.id.replace('ci-',''));
+  });
+  return checked;
+}
+
+function collectTimeCard(phase) {
+  if (!currentJob) return null;
+  const key = currentJob.orderNum + ':' + phase;
+  const card = timeCards[key] || {};
+  return {
+    in:    card.in  || null,
+    out:   card.out || null,
+    hours: getHoursFromTimeCard(phase)
+  };
+}
+
+// =============================================
+// DELIVERY DONE
+// =============================================
+function confirmDeliveryDone() {
+  showConfirm('\ud83d\ude9a', 'Mark Delivery Complete?',
+    'This will save your delivery checklist and lock it. The pickup tab will unlock.',
     async function() {
       try {
-        // Save time cards to sheet before completing
-        await saveTimeCardToSheet('delivery');
-        await saveTimeCardToSheet('pickup');
+        const checks   = collectChecks('tab-delivery');
+        const timeCard = collectTimeCard('delivery');
+        const helpers  = getHelperText('delivery');
+        const res = await callAppsScript({
+          action:   'saveDeliveryDone',
+          orderNum: currentJob.orderNum,
+          checks:   checks,
+          timeCard: timeCard,
+          helpers:  helpers
+        }, false);
+        if (res.success) {
+          showToast('\ud83d\ude9a Delivery saved');
+          // Lock delivery, unlock pickup
+          document.getElementById('deliveryDoneBanner').style.display = '';
+          lockChecklist('tab-delivery');
+          // Force unlock pickup tab
+          const pickupBtn = document.getElementById('tabBtnPickup');
+          pickupBtn.classList.remove('locked');
+          document.getElementById('pickupContent').style.display = '';
+          document.getElementById('pickupLockBanner').innerHTML = '';
+        } else {
+          showToast('\u26a0\ufe0f ' + res.error);
+        }
+      } catch(e) { showToast('\u26a0\ufe0f ' + e.message); }
+    });
+}
+
+// =============================================
+// PICKUP DONE
+// =============================================
+function confirmPickupDone() {
+  showConfirm('\ud83d\udce6', 'Mark Pickup Complete?',
+    'This will save your pickup checklist and close out the job.',
+    async function() {
+      try {
+        const checks   = collectChecks('tab-pickup');
+        const timeCard = collectTimeCard('pickup');
+        const helpers  = getHelperText('pickup');
+        const res = await callAppsScript({
+          action:   'savePickupDone',
+          orderNum: currentJob.orderNum,
+          checks:   checks,
+          timeCard: timeCard,
+          helpers:  helpers
+        }, false);
+        if (res.success) {
+          showToast('\ud83d\udce6 Job closed out');
+          closeModal(); loadJobs();
+        } else {
+          showToast('\u26a0\ufe0f ' + res.error);
+        }
+      } catch(e) { showToast('\u26a0\ufe0f ' + e.message); }
+    });
+}
+
+// =============================================
+// LOCK CHECKLIST
+// =============================================
+function lockChecklist(tabId) {
+  const tab = document.getElementById(tabId);
+  if (!tab) return;
+  tab.querySelectorAll('.check-item').forEach(function(el) {
+    el.style.pointerEvents = 'none';
+    el.style.opacity = '0.7';
+  });
+  // Lock selects and inputs too
+  tab.querySelectorAll('select, input').forEach(function(el) {
+    el.disabled = true;
+  });
+}
+
+// =============================================
+// RESTORE PROGRESS FROM SHEET
+// =============================================
+async function restoreProgress(orderNum) {
+  try {
+    const res = await callAppsScript({ action: 'getJobProgress', orderNum: orderNum }, false);
+    if (!res.success) return;
+
+    // Restore delivery progress
+    if (res.delivery) {
+      try {
+        const data = JSON.parse(res.delivery);
+        if (data.checks && data.checks.length > 0) {
+          data.checks.forEach(function(id) {
+            const el = document.getElementById('ci-' + id);
+            if (el) el.classList.add('checked');
+          });
+          // Show locked banner
+          document.getElementById('deliveryDoneBanner').style.display = '';
+          lockChecklist('tab-delivery');
+          // Unlock pickup
+          const pickupBtn = document.getElementById('tabBtnPickup');
+          pickupBtn.classList.remove('locked');
+          document.getElementById('pickupContent').style.display = '';
+          document.getElementById('pickupLockBanner').innerHTML = '';
+        }
+        // Restore time card
+        if (data.timeCard) {
+          const key = orderNum + ':delivery';
+          timeCards[key] = { in: data.timeCard.in, out: data.timeCard.out };
+          updateTimeCardUI('delivery');
+        }
+        // Restore helpers
+        if (data.helpers) {
+          const el = document.getElementById('deliveryHelperInput');
+          if (el) el.value = data.helpers;
+          helperSelections[orderNum + ':delivery:helpers'] = data.helpers;
+        }
+      } catch(e) {}
+    }
+
+    // Restore pickup progress
+    if (res.pickup) {
+      try {
+        const data = JSON.parse(res.pickup);
+        if (data.checks && data.checks.length > 0) {
+          data.checks.forEach(function(id) {
+            const el = document.getElementById('ci-' + id);
+            if (el) el.classList.add('checked');
+          });
+        }
+        if (data.timeCard) {
+          const key = orderNum + ':pickup';
+          timeCards[key] = { in: data.timeCard.in, out: data.timeCard.out };
+          updateTimeCardUI('pickup');
+        }
+        if (data.helpers) {
+          const el = document.getElementById('pickupHelperInput');
+          if (el) el.value = data.helpers;
+          helperSelections[orderNum + ':pickup:helpers'] = data.helpers;
+        }
+      } catch(e) {}
+    }
+  } catch(e) {}
+}
+
+function confirmComplete() {
+  showConfirm('\u2705', 'Mark Job Complete?',
+    'Skip checklist and move ' + currentJob.clientName + ' (#' + currentJob.orderNum + ') to Completed. Use for legacy jobs.',
+    async function() {
+      try {
         await callAppsScript({ action: 'completeJob', orderNum: currentJob.orderNum });
         showToast('\u2705 Job marked complete');
         closeModal(); loadJobs();
