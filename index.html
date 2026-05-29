@@ -528,9 +528,11 @@ let helperRoster   = [];   // loaded from sheet
 // =============================================
 // INIT
 // =============================================
-// Register service worker for PWA
+// Unregister any old service workers to prevent caching issues
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(function(e) { console.log('SW reg failed:', e); });
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    registrations.forEach(function(reg) { reg.unregister(); });
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => { loadJobs(); setupDragDrop(); });
