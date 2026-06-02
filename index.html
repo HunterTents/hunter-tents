@@ -73,6 +73,11 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
 .job-count { background: var(--navy); color: var(--gold); border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 600; font-family: var(--font-mono); }
 .section-title.active-title { color: var(--warning); }
 .job-count.active-count { background: var(--warning); color: var(--navy); }
+.section-title.inprogress-title { color: #3b82f6; }
+.job-count.inprogress-count { background: #3b82f6; color: white; }
+.job-card.inprogress-card { border-color: #3b82f6; box-shadow: 0 2px 12px rgba(59,130,246,0.2); }
+.job-accent.inprogress { background: #3b82f6; }
+.badge-inprogress { background: #dbeafe; color: #1d4ed8; }
 
 /* JOB CARDS */
 .jobs-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
@@ -260,6 +265,15 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
       <div class="empty-state"><div class="empty-icon">🔥</div><div class="empty-text">No active jobs</div></div>
     </div>
 
+    <!-- IN PROGRESS -->
+    <div class="section-header">
+      <div class="section-title inprogress-title">In Progress</div>
+      <span class="job-count inprogress-count" id="inprogressCount">0</span>
+    </div>
+    <div class="jobs-grid" id="inprogressGrid">
+      <div class="empty-state"><div class="empty-icon">🚚</div><div class="empty-text">No jobs in progress</div></div>
+    </div>
+
     <!-- UPCOMING -->
     <div class="section-header">
       <div class="section-title">Upcoming</div>
@@ -361,6 +375,7 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
         <!-- PHOTO CAPTURE — DELIVERY -->
         <div class="photo-item" id="deliveryPhotoSection">
           <div class="photo-item-title">📸 Site Photo — Required Before Leaving</div>
+          <div id="deliveryPhotoOnFile" style="display:none;background:var(--success);color:white;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;margin-bottom:8px;">✅ Photo on file in Drive</div>
           <div class="photo-btns">
             <label class="photo-btn" id="deliveryCameraLabel">
               📷 Take Photo
@@ -444,6 +459,7 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
           <!-- PHOTO CAPTURE — PICKUP -->
           <div class="photo-item" id="pickupPhotoSection">
             <div class="photo-item-title">📸 Site Photo — Required Before Leaving</div>
+            <div id="pickupPhotoOnFile" style="display:none;background:var(--success);color:white;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;margin-bottom:8px;">✅ Photo on file in Drive</div>
             <div class="photo-btns">
               <label class="photo-btn" id="pickupCameraLabel">
                 📷 Take Photo
@@ -511,7 +527,7 @@ body { font-family: var(--font-body); background: var(--off-white); color: var(-
 // =============================================
 // CONFIG — paste your Apps Script URL here
 // =============================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4vJ2WXqmv8Rs26FBZaqUGEmBVjI-luR0y0JhlJ7xYFK_wVzRP-UJmQBKdJ0Z678uI/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw6izYVllp8jAmS8C7Y4hsQrt53NpmfC1Dzc6IiISyCfGdiXmZxZUx84_HfUxwf01k2/exec';
 
 // =============================================
 // STATE
@@ -545,6 +561,8 @@ document.addEventListener('DOMContentLoaded', () => { loadJobs(); setupDragDrop(
 // =============================================
 function getJobDisplayStatus(job) {
   if (job.status === 'Completed') return 'completed';
+  // In Progress = delivery has been completed (deliveryProgress set)
+  if (job.deliveryProgress) return 'inprogress';
   const now = new Date();
   now.setHours(0,0,0,0);
   const delivery = new Date(job.deliveryDate);
@@ -563,13 +581,15 @@ async function loadJobs() {
     allJobs = res;
     const allActive = (allJobs.active || []);
 
-    const active    = allActive.filter(j => getJobDisplayStatus(j) === 'active');
-    const upcoming  = allActive.filter(j => getJobDisplayStatus(j) === 'upcoming');
-    const completed = allJobs.completed || [];
+    const active     = allActive.filter(j => getJobDisplayStatus(j) === 'active');
+    const inprogress = allActive.filter(j => getJobDisplayStatus(j) === 'inprogress');
+    const upcoming   = allActive.filter(j => getJobDisplayStatus(j) === 'upcoming');
+    const completed  = allJobs.completed || [];
 
-    renderJobList('active',    active,    'active');
-    renderJobList('upcoming',  upcoming,  'upcoming');
-    renderJobList('completed', completed, 'completed');
+    renderJobList('active',     active,     'active');
+    renderJobList('inprogress', inprogress, 'inprogress');
+    renderJobList('upcoming',   upcoming,   'upcoming');
+    renderJobList('completed',  completed,  'completed');
   } catch(e) { showToast('Could not load jobs: ' + e.message); }
 }
 
@@ -588,10 +608,10 @@ function renderJobList(type, jobs, displayStatus) {
   jobs.sort((a,b) => new Date(a.deliveryDate) - new Date(b.deliveryDate));
   grid.innerHTML = jobs.map(job => {
     const ds = displayStatus;
-    const accentClass = ds === 'active' ? 'active' : ds === 'completed' ? 'completed' : '';
-    const badgeClass  = ds === 'active' ? 'badge-active' : ds === 'completed' ? 'badge-completed' : 'badge-upcoming';
-    const badgeText   = ds === 'active' ? 'Active' : ds === 'completed' ? 'Done' : 'Upcoming';
-    const cardClass   = ds === 'active' ? 'job-card active-card' : 'job-card';
+    const accentClass = ds === 'active' ? 'active' : ds === 'inprogress' ? 'inprogress' : ds === 'completed' ? 'completed' : '';
+    const badgeClass  = ds === 'active' ? 'badge-active' : ds === 'inprogress' ? 'badge-inprogress' : ds === 'completed' ? 'badge-completed' : 'badge-upcoming';
+    const badgeText   = ds === 'active' ? 'Active' : ds === 'inprogress' ? 'In Progress' : ds === 'completed' ? 'Done' : 'Upcoming';
+    const cardClass   = ds === 'active' ? 'job-card active-card' : ds === 'inprogress' ? 'job-card inprogress-card' : 'job-card';
     const hasSvc      = hasSetupService(job.items);
     return '<div class="' + cardClass + '">' +
       '<div class="job-card-inner" onclick="openJob(\'' + job.orderNum + '\')">' +
@@ -1143,6 +1163,11 @@ async function uploadPhoto(base64, label, tab) {
     }, false);
     if (res.success) {
       if (statusEl) { statusEl.textContent = '\u2705 Photo saved to Drive: ' + res.fileName; statusEl.classList.add('show'); }
+      // Mark photo as saved in progress state
+      if (currentJob) {
+        const key = currentJob.orderNum + ':' + tab + ':photoSaved';
+        photoStates[key] = true;
+      }
     } else {
       if (statusEl) { statusEl.textContent = '\u26a0\ufe0f Saved locally only — Drive upload failed'; statusEl.style.color = 'var(--warning)'; statusEl.classList.add('show'); }
     }
@@ -1238,12 +1263,14 @@ function confirmDeliveryDone() {
         const checks   = collectChecks('tab-delivery');
         const timeCard = collectTimeCard('delivery');
         const helpers  = getHelperText('delivery');
+        const photoSaved = !!(currentJob && photoStates[currentJob.orderNum + ':delivery:photoSaved']);
         const res = await callAppsScript({
-          action:   'saveDeliveryDone',
-          orderNum: currentJob.orderNum,
-          checks:   checks,
-          timeCard: timeCard,
-          helpers:  helpers
+          action:     'saveDeliveryDone',
+          orderNum:   currentJob.orderNum,
+          checks:     checks,
+          timeCard:   timeCard,
+          helpers:    helpers,
+          photoSaved: photoSaved
         }, false);
         if (res.success) {
           showToast('\ud83d\ude9a Delivery saved');
@@ -1273,12 +1300,14 @@ function confirmPickupDone() {
         const checks   = collectChecks('tab-pickup');
         const timeCard = collectTimeCard('pickup');
         const helpers  = getHelperText('pickup');
+        const photoSaved = !!(currentJob && photoStates[currentJob.orderNum + ':pickup:photoSaved']);
         const res = await callAppsScript({
-          action:   'savePickupDone',
-          orderNum: currentJob.orderNum,
-          checks:   checks,
-          timeCard: timeCard,
-          helpers:  helpers
+          action:     'savePickupDone',
+          orderNum:   currentJob.orderNum,
+          checks:     checks,
+          timeCard:   timeCard,
+          helpers:    helpers,
+          photoSaved: photoSaved
         }, false);
         if (res.success) {
           showToast('\ud83d\udce6 Job closed out');
@@ -1344,6 +1373,11 @@ async function restoreProgress(orderNum) {
           if (el) el.value = data.helpers;
           helperSelections[orderNum + ':delivery:helpers'] = data.helpers;
         }
+        // Show photo on file indicator if photo was saved
+        if (data.photoSaved) {
+          const onFile = document.getElementById('deliveryPhotoOnFile');
+          if (onFile) onFile.style.display = '';
+        }
       } catch(e) {}
     }
 
@@ -1366,6 +1400,10 @@ async function restoreProgress(orderNum) {
           const el = document.getElementById('pickupHelperInput');
           if (el) el.value = data.helpers;
           helperSelections[orderNum + ':pickup:helpers'] = data.helpers;
+        }
+        if (data.photoSaved) {
+          const onFile = document.getElementById('pickupPhotoOnFile');
+          if (onFile) onFile.style.display = '';
         }
       } catch(e) {}
     }
