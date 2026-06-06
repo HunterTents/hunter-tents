@@ -1282,6 +1282,8 @@ function confirmDeliveryDone() {
           pickupBtn.classList.remove('locked');
           document.getElementById('pickupContent').style.display = '';
           document.getElementById('pickupLockBanner').innerHTML = '';
+          // Refresh job list so card moves to In Progress
+          loadJobs();
         } else {
           showToast('\u26a0\ufe0f ' + res.error);
         }
