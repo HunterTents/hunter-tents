@@ -677,7 +677,9 @@ function closeModal() { document.getElementById('jobModal').classList.remove('op
 // =============================================
 function isDeliveryComplete() {
   if (!currentJob) return false;
-  // Check photo captured
+  // If delivery was previously saved to sheet, always consider complete
+  if (currentJob.deliveryProgress) return true;
+  // Check photo captured in current session
   const photoKey = currentJob.orderNum + ':delivery';
   if (!photoStates[photoKey]) return false;
   // Check all delivery checkboxes checked
